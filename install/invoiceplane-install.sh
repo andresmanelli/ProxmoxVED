@@ -16,11 +16,12 @@ update_os
 
 # Installing Dependencies
 msg_info "Installing Dependencies"
-#$STD apt-get install -y
+pkg_update
+pkg_install curl wget git nginx
 msg_ok "Installed Dependencies"
 
-# setup_php
-# setup => database driver
+setup_php "8.3"
+setup_mariadb "11"
 
 # Template: MySQL Database
 msg_info "Setting up Database"
@@ -40,14 +41,37 @@ msg_ok "Set up Database"
 
 # Setup App
 msg_info "Setup ${APPLICATION}"
+fetch_and_deploy_gh_release "${APPLICATION}" "InvoicePlane/InvoicePlane" "tarball"
 RELEASE=$(curl -fsSL https://api.github.com/repos/InvoicePlane/InvoicePlane/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-curl -fsSL -o "${RELEASE}.zip" "https://github.com/InvoicePlane/InvoicePlane/archive/refs/tags/${RELEASE}.zip"
-unzip -q "${RELEASE}.zip"
-mv "${APPLICATION}-${RELEASE}/" "/opt/${APPLICATION}"
-#
-#
-#
-echo "${RELEASE}" >/opt/"${APPLICATION}"_version.txt
+echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
+
+cat > /etc/nginx/blocks/invoiceplane <<EOF
+server {
+    root /opt/${APPLICATION};
+    index  index.php index.html index.htm;
+
+    listen 80;
+
+    client_max_body_size 100M;
+
+    server_name invoiceplane.localhost;
+
+    error_log /var/log/nginx/invoiceplane.nginx.error.log warn;
+    access_log /var/log/nginx/invoiceplane.nginx.access.log main;
+
+    location / {
+        try_files $uri $uri/ /index.php?q=$uri&$args;
+    }
+
+    location ~ \.php$ {
+        include fastcgi.conf;
+        fastcgi_pass unix:/var/run/php-fpm8/php-fpm.sock;
+        fastcgi_param SCRIPT_NAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+EOF
+
 msg_ok "Setup ${APPLICATION}"
 
 # Creating Service (if needed)
@@ -69,10 +93,4 @@ msg_ok "Setup ${APPLICATION}"
 
 motd_ssh
 customize
-
-# Cleanup
-msg_info "Cleaning up"
-rm -f "${RELEASE}".zip
-$STD apt-get -y autoremove
-$STD apt-get -y autoclean
-msg_ok "Cleaned"
+cleanup_lxc
