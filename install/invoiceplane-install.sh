@@ -20,6 +20,7 @@ pkg_update
 setup_php "8"
 setup_mariadb "12"
 pkg_install curl wget git nginx php-fpm php-bcmath php8.4-dom php-gd php-json php-mbstring php-mcrypt php8.4-mysql php-xml php-xmlrpc
+pkg_remove apache2
 
 msg_ok "Installed Dependencies"
 
@@ -40,11 +41,11 @@ $STD mariadb -u root -e "GRANT ALL ON $DB_NAME.* TO '$DB_USER'@'localhost'; FLUS
 msg_ok "Set up Database"
 
 # Setup App
-msg_info "Setup ${APPLICATION}"
-RELEASE=$(curl -fsSL https://api.github.com/repos/InvoicePlane/InvoicePlane/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-curl -fsSL -o "v${RELEASE}.zip" "https://github.com/InvoicePlane/InvoicePlane/archive/refs/tags/v${RELEASE}.zip"
+VERSION=1.7.0
+msg_info "Setup ${APPLICATION} ${VERSION}"
+curl -fsSL -o "v${RELEASE}.zip" https://www.invoiceplane.com/download/v1.7.0-beta-1
 unzip -q "v${RELEASE}.zip"
-mv "${APPLICATION}-${RELEASE}/" "/opt/${APPLICATION}"
+mv "ip" "/opt/${APPLICATION}"
 echo "v${RELEASE}" >/opt/${APPLICATION}_version.txt
 
 cat > /etc/nginx/sites-available/invoiceplane <<EOF
@@ -73,7 +74,7 @@ server {
 EOF
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/invoiceplane /etc/nginx/sites-enabled/invoiceplane
-#svc_restart nginx
+svc_restart nginx
 
 cp /opt/${APPLICATION}/ipconfig.php.example /opt/${APPLICATION}/ipconfig.php
 sed -i "s|IP_URL=.*|IP_URL=http://$(get_current_ip)|" /opt/${APPLICATION}/ipconfig.php
@@ -83,24 +84,11 @@ sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" /opt/${APPLICATION}/ipconfig.p
 sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_NAME}/" /opt/${APPLICATION}/ipconfig.php
 sed -i "s/DB_PORT=.*/DB_PORT=${DB_PORT}/" /opt/${APPLICATION}/ipconfig.php
 
-msg_ok "Setup ${APPLICATION}"
+chown -R www-data:www-data /opt/${APPLICATION}/ipconfig.php
+chown -R www-data:www-data /opt/${APPLICATION}/uploads
+chown -R www-data:www-data /opt/${APPLICATION}/application/logs
 
-# Creating Service (if needed)
-#msg_info "Creating Service"
-#cat <<EOF >/etc/systemd/system/"${APPLICATION}".service
-#[Unit]
-#Description=${APPLICATION} Service
-#After=network.target
-#
-#[Service]
-#ExecStart=[START_COMMAND]
-#Restart=always
-#
-#[Install]
-#WantedBy=multi-user.target
-#EOF
-#systemctl enable -q --now "${APPLICATION}"
-#msg_ok "Created Service"
+msg_ok "Setup ${APPLICATION} ${VERSION}"
 
 motd_ssh
 customize
