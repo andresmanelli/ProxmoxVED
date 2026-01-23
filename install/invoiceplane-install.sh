@@ -43,10 +43,10 @@ msg_ok "Set up Database"
 # Setup App
 VERSION=1.7.0
 msg_info "Setup ${APPLICATION} ${VERSION}"
-curl -fsSL -o "v${RELEASE}.zip" https://www.invoiceplane.com/download/v1.7.0-beta-1
-unzip -q "v${RELEASE}.zip"
+curl -fsSL -o "v${VERSION}.zip" https://www.invoiceplane.com/download/v1.7.0-beta-1
+unzip -q "v${VERSION}.zip"
 mv "ip" "/opt/${APPLICATION}"
-echo "v${RELEASE}" >/opt/${APPLICATION}_version.txt
+echo "v${VERSION}" >/opt/${APPLICATION}_version.txt
 
 cat > /etc/nginx/sites-available/invoiceplane <<EOF
 server {
