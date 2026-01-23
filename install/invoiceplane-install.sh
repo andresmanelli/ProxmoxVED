@@ -73,7 +73,8 @@ server {
 EOF
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/invoiceplane /etc/nginx/sites-enabled/invoiceplane
-nginx -s reload
+stop_service nginx
+start_service nginx
 
 cp /opt/${APPLICATION}/ipconfig.php.example /opt/${APPLICATION}/ipconfig.php
 sed -i "s|IP_URL=.*|IP_URL=http://$(get_current_ip())|" /opt/${APPLICATION}/ipconfig.php
