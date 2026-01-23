@@ -20,7 +20,6 @@ pkg_update
 setup_php "8"
 setup_mariadb "12"
 pkg_install curl wget git nginx php-fpm php-bcmath php8.4-dom php-gd php-json php-mbstring php-mcrypt php8.4-mysql php-xml php-xmlrpc
-php-openssl php-recode php-zlib
 
 msg_ok "Installed Dependencies"
 
