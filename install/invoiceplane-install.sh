@@ -76,7 +76,7 @@ ln -s /etc/nginx/sites-available/invoiceplane /etc/nginx/sites-enabled/invoicepl
 #svc_restart nginx
 
 cp /opt/${APPLICATION}/ipconfig.php.example /opt/${APPLICATION}/ipconfig.php
-sed -i "s|IP_URL=.*|IP_URL=http://$(get_current_ip())|" /opt/${APPLICATION}/ipconfig.php
+sed -i "s|IP_URL=.*|IP_URL=http://$(get_current_ip)|" /opt/${APPLICATION}/ipconfig.php
 sed -i "s/DB_HOSTNAME=.*/DB_HOSTNAME=localhost/" /opt/${APPLICATION}/ipconfig.php
 sed -i "s/DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" /opt/${APPLICATION}/ipconfig.php
 sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" /opt/${APPLICATION}/ipconfig.php
